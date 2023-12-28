@@ -7,6 +7,9 @@ import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.rendering.*;
 
@@ -22,23 +25,57 @@ public class PDFPreviewer {
     private JScrollPane scrollPane;
     private JLabel imageLabel;
     private File file;
+    private JTree fileTree;
+
+
+    private JComboBox<String> projectNames;
+    private JSpinner dateSpinner;
+    private JTextField supplierField;
+    private JFormattedTextField amountField;
 
     public PDFPreviewer() {
         frame = new JFrame("PDF Previewer and Renamer");
-        label = new JLabel("Enter new name:");
-        textField = new JTextField(20);
-        button = new JButton("Rename");
+
+        // Create the input fields
+        projectNames = new JComboBox<>(new String[] { "Project 1", "Project 2", "Project 3" });
+        dateSpinner = new JSpinner(new SpinnerDateModel());
+        supplierField = new JTextField(20);
+        amountField = new JFormattedTextField(Double.valueOf(0.0));
+        amountField.setColumns(8);
+
+        // Configure the date spinner
+        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(dateSpinner, "yyyy/MM/dd");
+        dateSpinner.setEditor(dateEditor);
+
+        // Add the input fields to the panel
         panel = new JPanel();
+        panel.add(new JLabel("Project:"));
+        panel.add(projectNames);
+        panel.add(new JLabel("Date:"));
+        panel.add(dateSpinner);
+        panel.add(new JLabel("Supplier:"));
+        panel.add(supplierField);
+        panel.add(new JLabel("Amount:"));
+        panel.add(amountField);
+
+        button = new JButton("Rename");
+
         imageLabel = new JLabel();
 
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (file != null) {
-                    String newName = textField.getText();
+                    String projectName = (String) projectNames.getSelectedItem();
+                    String date = new SimpleDateFormat("yyyy-MM-dd").format((Date) dateSpinner.getValue());
+                    String supplier = supplierField.getText();
+                    String amount = amountField.getText();
+                    String newName = projectName + "-" + date + "-" + supplier + "-" + amount;
                     File newFile = new File(file.getParentFile(), newName + ".pdf");
+
                     if (file.renameTo(newFile)) {
                         JOptionPane.showMessageDialog(frame, "File renamed successfully");
                         file = newFile;
+                        refreshTree();
                     } else {
                         JOptionPane.showMessageDialog(frame, "Error renaming file");
                     }
@@ -46,14 +83,11 @@ public class PDFPreviewer {
             }
         });
 
-        panel.add(label);
-        panel.add(textField);
         panel.add(button);
 
         frame.add(panel, BorderLayout.NORTH);
 
         scrollPane = new JScrollPane(imageLabel);
-        JTree fileTree; // Declare the fileTree variable
 
         frame.add(scrollPane, BorderLayout.CENTER);
 
@@ -110,7 +144,6 @@ public class PDFPreviewer {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 PDFPreviewer previewer = new PDFPreviewer();
-                previewer.previewPDF(new File("C:\\Users\\marti\\Dropbox\\Factures\\Facture 2023\\b.pdf"));
             }
         });
     }
@@ -125,6 +158,16 @@ public class PDFPreviewer {
             }
         } else {
             node.add(new DefaultMutableTreeNode(file));
+        }
+    }
+
+    private void refreshTree() {
+        DefaultMutableTreeNode root = new DefaultMutableTreeNode("Files");
+        addFilesToNode(root, new File("C:\\Users\\marti\\Dropbox\\Factures\\Facture 2023"));
+        DefaultTreeModel model = new DefaultTreeModel(root);
+        fileTree.setModel(model);
+        for (int i = 0; i < fileTree.getRowCount(); i++) {
+            fileTree.expandRow(i);
         }
     }
 
