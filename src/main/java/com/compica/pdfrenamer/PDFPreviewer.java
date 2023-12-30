@@ -27,7 +27,6 @@ public class PDFPreviewer {
     private File file;
     private JTree fileTree;
 
-
     private JComboBox<String> projectNames;
     private JSpinner dateSpinner;
     private JTextField supplierField;
@@ -36,8 +35,34 @@ public class PDFPreviewer {
     public PDFPreviewer() {
         frame = new JFrame("PDF Previewer and Renamer");
 
+        // Create the menu bar
+        JMenuBar menuBar = new JMenuBar();
+
+        // Create the "File" menu
+        JMenu fileMenu = new JMenu("File");
+        menuBar.add(fileMenu);
+
+            // Create the "Open Folder" menu item
+    JMenuItem openFolderMenuItem = new JMenuItem("Open Folder");
+    openFolderMenuItem.addActionListener(new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            JFileChooser folderChooser = new JFileChooser();
+            folderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            int returnValue = folderChooser.showOpenDialog(null);
+            if (returnValue == JFileChooser.APPROVE_OPTION) {
+                File selectedFolder = folderChooser.getSelectedFile();
+            }
+        }
+    });
+    fileMenu.add(openFolderMenuItem);
+
+    // Set the menu bar on the frame
+    frame.setJMenuBar(menuBar);
+
+
         // Create the input fields
-        projectNames = new JComboBox<>(new String[] { "Project 1", "Project 2", "Project 3" });
+        projectNames = new JComboBox<>(ConfigUtil.getConfig().getProjectList().toArray(new String[0]));
         dateSpinner = new JSpinner(new SpinnerDateModel());
         supplierField = new JTextField(20);
         amountField = new JFormattedTextField(Double.valueOf(0.0));
