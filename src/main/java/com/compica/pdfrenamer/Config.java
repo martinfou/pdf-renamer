@@ -4,7 +4,8 @@ import java.util.List;
 
 public class Config {
     private List<String> projectList;
-    private List<String> vendors;
+    private List<String> supplierList;
+    private String sourceFolder;
 
     // Getters and setters
 
@@ -16,11 +17,20 @@ public class Config {
         this.projectList = projectList;
     }
 
-    public List<String> getVendors() {
-        return vendors;
+    public String getSourceFolder() {
+        return sourceFolder;
     }
 
-    public void setVendors(List<String> vendors) {
-        this.vendors = vendors;
+    public void setSourceFolder(String sourceFolder) {
+        this.sourceFolder = sourceFolder;
     }
+
+    public List<String> getSupplierList() {
+        return supplierList;
+    }
+
+    public void setSupplierList(List<String> supplierList) {
+        this.supplierList = supplierList;
+    }
+
 }

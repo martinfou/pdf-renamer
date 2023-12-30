@@ -1,4 +1,5 @@
 {
     "projectList": ["Compica","Des Ecluses","Edouard", "Saint-Laurent"],
-    "vendors": ["vendor1", "vendor2", "vendor3"]
+    "supplierList": ["Rogers","Bell"],
+    "sourceFolder": "C:\\Users\\marti\\Dropbox\\Factures\\Facture 2023"
 }

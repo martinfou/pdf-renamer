@@ -29,11 +29,12 @@ public class PDFPreviewer {
 
     private JComboBox<String> projectNames;
     private JSpinner dateSpinner;
-    private JTextField supplierField;
+    private JComboBox<String> supplierField;
     private JFormattedTextField amountField;
 
     public PDFPreviewer() {
         frame = new JFrame("PDF Previewer and Renamer");
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         // Create the menu bar
         JMenuBar menuBar = new JMenuBar();
@@ -52,6 +53,7 @@ public class PDFPreviewer {
             int returnValue = folderChooser.showOpenDialog(null);
             if (returnValue == JFileChooser.APPROVE_OPTION) {
                 File selectedFolder = folderChooser.getSelectedFile();
+                System.out.println(selectedFolder.getAbsolutePath());
             }
         }
     });
@@ -64,7 +66,7 @@ public class PDFPreviewer {
         // Create the input fields
         projectNames = new JComboBox<>(ConfigUtil.getConfig().getProjectList().toArray(new String[0]));
         dateSpinner = new JSpinner(new SpinnerDateModel());
-        supplierField = new JTextField(20);
+        supplierField = new JComboBox(ConfigUtil.getConfig().getSupplierList().toArray(new String[0]));
         amountField = new JFormattedTextField(Double.valueOf(0.0));
         amountField.setColumns(8);
 
@@ -92,9 +94,9 @@ public class PDFPreviewer {
                 if (file != null) {
                     String projectName = (String) projectNames.getSelectedItem();
                     String date = new SimpleDateFormat("yyyy-MM-dd").format((Date) dateSpinner.getValue());
-                    String supplier = supplierField.getText();
+                    String supplier = (String) supplierField.getSelectedItem();
                     String amount = amountField.getText();
-                    String newName = projectName + "-" + date + "-" + supplier + "-" + amount;
+                    String newName = projectName + "-" + date + "-" + supplier + "_" + amount;
                     File newFile = new File(file.getParentFile(), newName + ".pdf");
 
                     if (file.renameTo(newFile)) {
@@ -119,7 +121,7 @@ public class PDFPreviewer {
         // Create the root node
         DefaultMutableTreeNode root = new DefaultMutableTreeNode("Files");
         // Add files to the root node
-        addFilesToNode(root, new File("C:\\Users\\marti\\Dropbox\\Factures\\Facture 2023"));
+        addFilesToNode(root, new File(ConfigUtil.getConfig().getSourceFolder()));
         // Create the tree model and add the root node to it
         DefaultTreeModel model = new DefaultTreeModel(root);
         // Create the tree with the model
@@ -188,7 +190,7 @@ public class PDFPreviewer {
 
     private void refreshTree() {
         DefaultMutableTreeNode root = new DefaultMutableTreeNode("Files");
-        addFilesToNode(root, new File("C:\\Users\\marti\\Dropbox\\Factures\\Facture 2023"));
+        addFilesToNode(root, new File(ConfigUtil.getConfig().getSourceFolder()));
         DefaultTreeModel model = new DefaultTreeModel(root);
         fileTree.setModel(model);
         for (int i = 0; i < fileTree.getRowCount(); i++) {
