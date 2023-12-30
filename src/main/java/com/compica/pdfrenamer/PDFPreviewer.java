@@ -66,7 +66,7 @@ public class PDFPreviewer {
         // Create the input fields
         projectNames = new JComboBox<>(ConfigUtil.getConfig().getProjectList().toArray(new String[0]));
         dateSpinner = new JSpinner(new SpinnerDateModel());
-        supplierField = new JComboBox(ConfigUtil.getConfig().getSupplierList().toArray(new String[0]));
+        supplierField = new JComboBox<>(ConfigUtil.getConfig().getSupplierList().toArray(new String[0]));
         amountField = new JFormattedTextField(Double.valueOf(0.0));
         amountField.setColumns(8);
 
@@ -96,7 +96,7 @@ public class PDFPreviewer {
                     String date = new SimpleDateFormat("yyyy-MM-dd").format((Date) dateSpinner.getValue());
                     String supplier = (String) supplierField.getSelectedItem();
                     String amount = amountField.getText();
-                    String newName = projectName + "-" + date + "-" + supplier + "_" + amount;
+                    String newName = projectName + "-" + date + "-" + supplier + "_$" + amount;
                     File newFile = new File(file.getParentFile(), newName + ".pdf");
 
                     if (file.renameTo(newFile)) {
