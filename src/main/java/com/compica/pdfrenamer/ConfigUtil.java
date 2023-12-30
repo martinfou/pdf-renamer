@@ -7,11 +7,12 @@ import java.io.InputStream;
 
 
 public class ConfigUtil {
-    public static Config getConfig() {
+    public Config getConfig() {
         // Create a Jackson ObjectMapper
         ObjectMapper mapper = new ObjectMapper();
 
         // Get the JSON file from the resources directory
+        
         InputStream jsonStream = ConfigUtil.class.getResourceAsStream("/config.json");
 
         // Parse the JSON content

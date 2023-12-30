@@ -1,20 +1,29 @@
 package com.compica.pdfrenamer;
 
+import java.util.Collections;
 import java.util.List;
 
 public class Config {
     private List<String> projectList;
     private List<String> supplierList;
+    private List<String> documentTypeList;
     private String sourceFolder;
 
     // Getters and setters
 
     public List<String> getProjectList() {
-        return projectList;
+        synchronized (projectList) {
+            Collections.sort(projectList);
+            return projectList;
+        }
     }
 
     public void setProjectList(List<String> projectList) {
-        this.projectList = projectList;
+        synchronized (projectList) {
+            Collections.sort(projectList);
+            this.projectList = projectList;
+        }
+
     }
 
     public String getSourceFolder() {
@@ -33,4 +42,11 @@ public class Config {
         this.supplierList = supplierList;
     }
 
+    public List<String> getDocumentTypeList() {
+        return documentTypeList;
+    }
+
+    public void setDocumentTypeList(List<String> documentTypeList) {
+        this.documentTypeList = documentTypeList;
+    }
 }

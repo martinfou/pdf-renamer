@@ -16,10 +16,15 @@ import org.apache.pdfbox.rendering.*;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 
-public class PDFPreviewer {
+public class PDFRenamer {
+    private static final String DOLLAR_SIGN = "$";
+
+    private static final String SEPARATOR = "_";
+
+    ConfigUtil configUtil = new ConfigUtil();
+    Config config = configUtil.getConfig();
     private JFrame frame;
-    private JLabel label;
-    private JTextField textField;
+
     private JButton button;
     private JPanel panel;
     private JScrollPane scrollPane;
@@ -27,14 +32,15 @@ public class PDFPreviewer {
     private File file;
     private JTree fileTree;
 
+    private JComboBox<String> documentTypeCombo;
     private JComboBox<String> projectNames;
     private JSpinner dateSpinner;
     private JComboBox<String> supplierField;
     private JFormattedTextField amountField;
+    private JTextField descriptionTextField;
 
-    public PDFPreviewer() {
+    public PDFRenamer() {
         frame = new JFrame("PDF Previewer and Renamer");
-        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         // Create the menu bar
         JMenuBar menuBar = new JMenuBar();
@@ -43,40 +49,38 @@ public class PDFPreviewer {
         JMenu fileMenu = new JMenu("File");
         menuBar.add(fileMenu);
 
-            // Create the "Open Folder" menu item
-    JMenuItem openFolderMenuItem = new JMenuItem("Open Folder");
-    openFolderMenuItem.addActionListener(new ActionListener() {
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            JFileChooser folderChooser = new JFileChooser();
-            folderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-            int returnValue = folderChooser.showOpenDialog(null);
-            if (returnValue == JFileChooser.APPROVE_OPTION) {
-                File selectedFolder = folderChooser.getSelectedFile();
-                System.out.println(selectedFolder.getAbsolutePath());
+        // Create the "Open Folder" menu item
+        JMenuItem openFolderMenuItem = new JMenuItem("Open Folder");
+        openFolderMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openFolder();
             }
-        }
-    });
-    fileMenu.add(openFolderMenuItem);
+        });
+        fileMenu.add(openFolderMenuItem);
 
-    // Set the menu bar on the frame
-    frame.setJMenuBar(menuBar);
-
+        // Set the menu bar on the frame
+        frame.setJMenuBar(menuBar);
 
         // Create the input fields
-        projectNames = new JComboBox<>(ConfigUtil.getConfig().getProjectList().toArray(new String[0]));
+        documentTypeCombo = new JComboBox<>(config.getDocumentTypeList().toArray(new String[0]));
+        projectNames = new JComboBox<>(config.getProjectList().toArray(new String[0]));
+
         dateSpinner = new JSpinner(new SpinnerDateModel());
-        supplierField = new JComboBox<>(ConfigUtil.getConfig().getSupplierList().toArray(new String[0]));
-        amountField = new JFormattedTextField(Double.valueOf(0.0));
+        supplierField = new JComboBox<>(config.getSupplierList().toArray(new String[0]));
+        amountField = new JFormattedTextField(Double.valueOf(0.00));
         amountField.setColumns(8);
+        descriptionTextField = new JTextField(20);
 
         // Configure the date spinner
-        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(dateSpinner, "yyyy/MM/dd");
+        JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd");
         dateSpinner.setEditor(dateEditor);
 
         // Add the input fields to the panel
         panel = new JPanel();
-        panel.add(new JLabel("Project:"));
+        panel.add(new JLabel("Type Document:"));
+        panel.add(documentTypeCombo);
+        panel.add(new JLabel("Projet:"));
         panel.add(projectNames);
         panel.add(new JLabel("Date:"));
         panel.add(dateSpinner);
@@ -84,6 +88,8 @@ public class PDFPreviewer {
         panel.add(supplierField);
         panel.add(new JLabel("Amount:"));
         panel.add(amountField);
+        panel.add(new JLabel("Description:"));
+        panel.add(descriptionTextField);
 
         button = new JButton("Rename");
 
@@ -91,37 +97,20 @@ public class PDFPreviewer {
 
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                if (file != null) {
-                    String projectName = (String) projectNames.getSelectedItem();
-                    String date = new SimpleDateFormat("yyyy-MM-dd").format((Date) dateSpinner.getValue());
-                    String supplier = (String) supplierField.getSelectedItem();
-                    String amount = amountField.getText();
-                    String newName = projectName + "-" + date + "-" + supplier + "_$" + amount;
-                    File newFile = new File(file.getParentFile(), newName + ".pdf");
-
-                    if (file.renameTo(newFile)) {
-                        JOptionPane.showMessageDialog(frame, "File renamed successfully");
-                        file = newFile;
-                        refreshTree();
-                    } else {
-                        JOptionPane.showMessageDialog(frame, "Error renaming file");
-                    }
-                }
+                renameFile();
+                refreshComboBoxes();
             }
         });
 
         panel.add(button);
-
         frame.add(panel, BorderLayout.NORTH);
-
         scrollPane = new JScrollPane(imageLabel);
-
         frame.add(scrollPane, BorderLayout.CENTER);
 
         // Create the root node
         DefaultMutableTreeNode root = new DefaultMutableTreeNode("Files");
         // Add files to the root node
-        addFilesToNode(root, new File(ConfigUtil.getConfig().getSourceFolder()));
+        addFilesToNode(root, new File(config.getSourceFolder()));
         // Create the tree model and add the root node to it
         DefaultTreeModel model = new DefaultTreeModel(root);
         // Create the tree with the model
@@ -140,10 +129,13 @@ public class PDFPreviewer {
         JScrollPane treeScrollPane = new JScrollPane(fileTree);
         // Add the scroll pane to the frame
         frame.getContentPane().add(treeScrollPane, BorderLayout.WEST);
-
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        
         frame.setSize(800, 600);
         frame.setVisible(true);
+        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+        frame.getRootPane().setDefaultButton(button);
+        refreshTree();
     }
 
     public void previewPDF(File file) {
@@ -170,7 +162,7 @@ public class PDFPreviewer {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                PDFPreviewer previewer = new PDFPreviewer();
+                PDFRenamer renamer = new PDFRenamer();
             }
         });
     }
@@ -190,11 +182,62 @@ public class PDFPreviewer {
 
     private void refreshTree() {
         DefaultMutableTreeNode root = new DefaultMutableTreeNode("Files");
-        addFilesToNode(root, new File(ConfigUtil.getConfig().getSourceFolder()));
+        addFilesToNode(root, new File(configUtil.getConfig().getSourceFolder()));
         DefaultTreeModel model = new DefaultTreeModel(root);
         fileTree.setModel(model);
         for (int i = 0; i < fileTree.getRowCount(); i++) {
             fileTree.expandRow(i);
+        }
+        // select the first node of the child of the root
+        fileTree.setSelectionRow(2);
+    }
+
+    private void refreshComboBoxes() {
+        documentTypeCombo.setModel(new DefaultComboBoxModel<String>(
+                ConfigUtil.getConfig().getDocumentTypeList().toArray(new String[0])));
+        projectNames.setModel(new DefaultComboBoxModel<String>(
+                ConfigUtil.getConfig().getProjectList().toArray(new String[0])));
+        supplierField.setModel(new DefaultComboBoxModel<String>(
+                ConfigUtil.getConfig().getSupplierList().toArray(new String[0])));
+    }
+
+    private void openFolder() {
+        JFileChooser folderChooser = new JFileChooser();
+        folderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        int returnValue = folderChooser.showOpenDialog(null);
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            File selectedFolder = folderChooser.getSelectedFile();
+            System.out.println(selectedFolder.getAbsolutePath());
+        }
+    }
+
+    private void renameFile() {
+        if (file != null) {
+            String documentType = (String) documentTypeCombo.getSelectedItem();
+            String projectName = (String) projectNames.getSelectedItem();
+            String date = new SimpleDateFormat("yyyy-MM-dd").format((Date) dateSpinner.getValue());
+            String supplier = (String) supplierField.getSelectedItem();
+            String amount = amountField.getText();
+            String description = descriptionTextField.getText();
+            String newName = "";
+    
+            if (documentType.equals("facture")) {
+                newName = projectName + SEPARATOR + documentType + SEPARATOR + date + SEPARATOR + supplier
+                        + SEPARATOR + DOLLAR_SIGN + amount;
+            } else {
+                newName = projectName + SEPARATOR + documentType + SEPARATOR + date + SEPARATOR + supplier
+                        + description;
+            }
+    
+            File newFile = new File(file.getParentFile(), newName + ".pdf");
+            if (file.renameTo(newFile)) {
+                JOptionPane.showMessageDialog(frame, "File renamed successfully");
+                file = newFile;
+                refreshTree();
+            } else {
+                JOptionPane.showMessageDialog(frame, "Error renaming file");
+                refreshTree();
+            }
         }
     }
 
