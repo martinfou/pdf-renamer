@@ -26,6 +26,7 @@ public class PDFRenamer {
     private JFrame frame;
 
     private JButton button;
+    private JButton refreshButton;
     private JPanel panel;
     private JScrollPane scrollPane;
     private JLabel imageLabel;
@@ -92,6 +93,7 @@ public class PDFRenamer {
         panel.add(descriptionTextField);
 
         button = new JButton("Rename");
+        refreshButton = new JButton("refresh");
 
         imageLabel = new JLabel();
 
@@ -102,7 +104,14 @@ public class PDFRenamer {
             }
         });
 
+        refreshButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                refreshComboBoxes();
+            }
+        });
+
         panel.add(button);
+        panel.add(refreshButton);
         frame.add(panel, BorderLayout.NORTH);
         scrollPane = new JScrollPane(imageLabel);
         frame.add(scrollPane, BorderLayout.CENTER);
@@ -130,7 +139,7 @@ public class PDFRenamer {
         // Add the scroll pane to the frame
         frame.getContentPane().add(treeScrollPane, BorderLayout.WEST);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        
+
         frame.setSize(800, 600);
         frame.setVisible(true);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -163,6 +172,7 @@ public class PDFRenamer {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 PDFRenamer renamer = new PDFRenamer();
+                renamer.frame.setVisible(true);
             }
         });
     }
@@ -194,11 +204,11 @@ public class PDFRenamer {
 
     private void refreshComboBoxes() {
         documentTypeCombo.setModel(new DefaultComboBoxModel<String>(
-                ConfigUtil.getConfig().getDocumentTypeList().toArray(new String[0])));
+                config.getDocumentTypeList().toArray(new String[0])));
         projectNames.setModel(new DefaultComboBoxModel<String>(
-                ConfigUtil.getConfig().getProjectList().toArray(new String[0])));
+                config.getProjectList().toArray(new String[0])));
         supplierField.setModel(new DefaultComboBoxModel<String>(
-                ConfigUtil.getConfig().getSupplierList().toArray(new String[0])));
+                config.getSupplierList().toArray(new String[0])));
     }
 
     private void openFolder() {
@@ -220,15 +230,15 @@ public class PDFRenamer {
             String amount = amountField.getText();
             String description = descriptionTextField.getText();
             String newName = "";
-    
+
             if (documentType.equals("facture")) {
-                newName = projectName + SEPARATOR + documentType + SEPARATOR + date + SEPARATOR + supplier
-                        + SEPARATOR + DOLLAR_SIGN + amount;
+                newName = documentType + SEPARATOR + projectName + SEPARATOR + date + SEPARATOR + supplier
+                        + SEPARATOR + DOLLAR_SIGN + amount + SEPARATOR + description;
             } else {
-                newName = projectName + SEPARATOR + documentType + SEPARATOR + date + SEPARATOR + supplier
+                newName = documentType + SEPARATOR + projectName + SEPARATOR + date + SEPARATOR + supplier + SEPARATOR
                         + description;
             }
-    
+
             File newFile = new File(file.getParentFile(), newName + ".pdf");
             if (file.renameTo(newFile)) {
                 JOptionPane.showMessageDialog(frame, "File renamed successfully");

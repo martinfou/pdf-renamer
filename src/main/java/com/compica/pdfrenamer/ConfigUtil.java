@@ -20,7 +20,6 @@ public class ConfigUtil {
         try {
             config = mapper.readValue(jsonStream, Config.class);
         } catch (IOException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
             return null;
         }
