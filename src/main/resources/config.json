@@ -1,6 +1,6 @@
 {
-    "projectList": ["compica","des ecluses","edouard","personel", "saint-laurent","f-150","dodge-caravan"],
-    "supplierList": ["bell","bois-expansion-inc","clinique-pedagogique","dentiste", "fido", "gagnon","home-depot","hydro-Quebec", "revenu-quebec", "rogers", "rona","scotia", "telus", "veterinaire","videotron"],
+    "projectList": ["roulotte","compica","des ecluses","edouard","personel", "saint-laurent","f-150","dodge-caravan"],
+    "supplierList": ["desroches cpa","taxes scolaires", "costco-optometriste","tigre-geant","winners","fonds ftq","dollorama","canac","wallmart","bell","bois-expansion-inc","clinique-pedagogique","dentiste", "fido", "gagnon","home-depot","hydro-Quebec", "revenu-quebec", "rogers", "rona","scotia", "telus", "veterinaire","videotron"],
     "documentTypeList": ["facture","document"],
     "sourceFolder": "C:\\Users\\marti\\Dropbox\\Factures\\Facture 2023"
 }
