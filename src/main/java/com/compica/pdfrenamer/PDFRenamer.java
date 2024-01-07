@@ -16,6 +16,7 @@ import org.apache.pdfbox.rendering.*;
 
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import io.reactivex.rxjava3.core.Observable;
 
 public class PDFRenamer {
     Logger logger = Logger.getLogger(PDFRenamer.class.getName());
@@ -79,6 +80,19 @@ public class PDFRenamer {
             }
         });
         projectNames.setEditable(true);
+
+        Observable<String> projectNamesObservable = Observable.create(emitter -> {
+            projectNames.addActionListener(e -> {
+                if (!emitter.isDisposed()) {
+                    emitter.onNext((String) projectNames.getSelectedItem());
+                }
+            });
+        });
+
+        projectNamesObservable.subscribe(item -> {
+            System.out.println("Selected item: " + item);
+        });
+        
 
         dateSpinner = new JSpinner(new SpinnerDateModel());
         supplierField = new JComboBox<>(config.getSupplierList().toArray(new String[0]));
@@ -332,5 +346,27 @@ public class PDFRenamer {
             }
         }
     }
+
+    private void testRxJava(){
+        projectNamesObservable.subscribe(item -> {
+            System.out.println("Selected item: " + item);
+        });
+    }
+
+    // Assuming `config` is your Config instance and `configUtil` is a utility for
+    // saving/loading the Config
+    // Assuming `projectNames` is your JComboBox instance
+
+    // Create an Observable that emits the selected item whenever it changes
+    Observable<String> projectNamesObservable = Observable.create(emitter -> {
+        projectNames.addActionListener(e -> {
+            if (!emitter.isDisposed()) {
+                emitter.onNext((String) projectNames.getSelectedItem());
+            }
+        });
+    });
+
+    // Subscribe to the Observable and update the Config file whenever the selected
+    // item changes
 
 }
