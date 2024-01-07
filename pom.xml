@@ -38,11 +38,26 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.2.0</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <addClasspath>true</addClasspath>
+              <classpathPrefix>lib/</classpathPrefix>
+              <mainClass>com.compica.pdfrenamer.PDFRenamer</mainClass>
+            </manifest>
+          </archive>
+        </configuration>
+      </plugin>
+
+      <plugin>
         <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
           <archive>
             <manifest>
-              <mainClass>com.compica.pdfrenamer.PDFPreviewer</mainClass>
+              <mainClass>com.compica.pdfrenamer.PDFRenamer</mainClass>
             </manifest>
           </archive>
           <descriptorRefs>

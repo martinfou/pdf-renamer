@@ -1,8 +1,9 @@
-com\compica\pdfrenamer\PDFPreviewer$2.class
-com\compica\pdfrenamer\PDFPreviewer.class
-com\compica\pdfrenamer\PDFPreviewer$1.class
-com\compica\pdfrenamer\PDFPreviewer$4.class
+com\compica\pdfrenamer\PDFRenamer$1.class
+com\compica\pdfrenamer\PDFRenamer$3.class
+com\compica\pdfrenamer\PDFRenamer$5.class
+com\compica\pdfrenamer\PDFRenamer.class
 com\compica\pdfrenamer\App.class
-com\compica\pdfrenamer\PDFPreviewer$3.class
+com\compica\pdfrenamer\PDFRenamer$2.class
 com\compica\pdfrenamer\Config.class
 com\compica\pdfrenamer\ConfigUtil.class
+com\compica\pdfrenamer\PDFRenamer$4.class
