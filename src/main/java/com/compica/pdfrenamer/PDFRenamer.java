@@ -29,7 +29,6 @@ public class PDFRenamer {
     private JFrame frame;
 
     private JButton button;
-    private JButton refreshButton;
     private JPanel panel;
     private JScrollPane scrollPane;
     private JLabel imageLabel;
@@ -44,62 +43,52 @@ public class PDFRenamer {
     private JTextField descriptionTextField;
 
     public PDFRenamer() {
+        createGui();
+    }
+
+    private void previewPDF(File file) {
+        this.file = file;
+        try {
+            PDDocument document = PDDocument.load(file);
+            PDFRenderer renderer = new PDFRenderer(document);
+            Image image = renderer.renderImageWithDPI(0, 300);
+
+            // Get the width and height of the scrollPane
+            int viewPaneWidth = scrollPane.getWidth();
+            int viewPaneHeight = scrollPane.getHeight();
+
+            // Scale the image to fit the scrollPane
+            Image scaledImage = image.getScaledInstance(viewPaneWidth, viewPaneHeight, Image.SCALE_SMOOTH);
+
+            imageLabel.setIcon(new ImageIcon(scaledImage));
+            document.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                PDFRenamer renamer = new PDFRenamer();
+                renamer.frame.setVisible(true);
+            }
+        });
+    }
+
+    protected void createGui() {
+        logger.info("createGui");
         frame = new JFrame("PDF Previewer and Renamer");
+        setupMenuBar();
 
-        // Create the menu bar
-        JMenuBar menuBar = new JMenuBar();
+        setupDocumentTypeComboBox();
+        setupProjectNamesComboBox();
+        setupSupplierComboBox();
+        setupAmountInputField();
+        setupDescriptionInputLabel();
 
-        // Create the "File" menu
-        JMenu fileMenu = new JMenu("File");
-        menuBar.add(fileMenu);
 
-        // Create the "Open Folder" menu item
-        JMenuItem openFolderMenuItem = new JMenuItem("Open Folder");
-        openFolderMenuItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                openFolder();
-            }
-        });
-        fileMenu.add(openFolderMenuItem);
-
-        // Set the menu bar on the frame
-        frame.setJMenuBar(menuBar);
-
-        // Create the input fields
-        documentTypeCombo = new JComboBox<>(config.getDocumentTypeList().toArray(new String[0]));
-        projectNames = new JComboBox<>(config.getProjectList().toArray(new String[0]));
-        final JTextField editor = (JTextField) projectNames.getEditor().getEditorComponent();
-        editor.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_DELETE) {
-                    Object selectedItem = projectNames.getSelectedItem();
-                    projectNames.removeItem(selectedItem);
-                }
-            }
-        });
-        projectNames.setEditable(true);
-
-        Observable<String> projectNamesObservable = Observable.create(emitter -> {
-            projectNames.addActionListener(e -> {
-                if (!emitter.isDisposed()) {
-                    emitter.onNext((String) projectNames.getSelectedItem());
-                }
-            });
-        });
-
-        projectNamesObservable.subscribe(item -> {
-            System.out.println("Selected item: " + item);
-        });
-        
-
-        dateSpinner = new JSpinner(new SpinnerDateModel());
-        supplierField = new JComboBox<>(config.getSupplierList().toArray(new String[0]));
-        supplierField.setEditable(true);
-        amountField = new JFormattedTextField(Double.valueOf(0.00));
-        amountField.setColumns(8);
-        descriptionTextField = new JTextField(20);
+        imageLabel = new JLabel();
 
         // Configure the date spinner
         JSpinner.DateEditor dateEditor = new JSpinner.DateEditor(dateSpinner, "yyyy-MM-dd");
@@ -120,19 +109,14 @@ public class PDFRenamer {
         panel.add(new JLabel("Description:"));
         panel.add(descriptionTextField);
 
-        button = new JButton("Rename");
-        refreshButton = new JButton("refresh");
 
-        imageLabel = new JLabel();
+        button = new JButton("Rename");
+
+
 
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 renameFile();
-            }
-        });
-
-        refreshButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
             }
         });
 
@@ -191,7 +175,6 @@ public class PDFRenamer {
         });
 
         panel.add(button);
-        panel.add(refreshButton);
         frame.add(panel, BorderLayout.NORTH);
         scrollPane = new JScrollPane(imageLabel);
         frame.add(scrollPane, BorderLayout.CENTER);
@@ -227,34 +210,56 @@ public class PDFRenamer {
         refreshTree();
     }
 
-    public void previewPDF(File file) {
-        this.file = file;
-        try {
-            PDDocument document = PDDocument.load(file);
-            PDFRenderer renderer = new PDFRenderer(document);
-            Image image = renderer.renderImageWithDPI(0, 300);
-
-            // Get the width and height of the scrollPane
-            int viewPaneWidth = scrollPane.getWidth();
-            int viewPaneHeight = scrollPane.getHeight();
-
-            // Scale the image to fit the scrollPane
-            Image scaledImage = image.getScaledInstance(viewPaneWidth, viewPaneHeight, Image.SCALE_SMOOTH);
-
-            imageLabel.setIcon(new ImageIcon(scaledImage));
-            document.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private void setupDescriptionInputLabel() {
+        descriptionTextField = new JTextField(20);
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                PDFRenamer renamer = new PDFRenamer();
-                renamer.frame.setVisible(true);
+    private void setupAmountInputField() {
+        amountField = new JFormattedTextField(Double.valueOf(0.00));
+        amountField.setColumns(8);
+    }
+
+    private void setupSupplierComboBox() {
+        dateSpinner = new JSpinner(new SpinnerDateModel());
+        supplierField = new JComboBox<>(config.getSupplierList().toArray(new String[0]));
+        supplierField.setEditable(true);
+    }
+
+    private void setupDocumentTypeComboBox() {
+        documentTypeCombo = new JComboBox<>(config.getDocumentTypeList().toArray(new String[0]));
+    }
+
+    private void setupMenuBar() {
+        // Create the menu bar
+        JMenuBar menuBar = new JMenuBar();
+        JMenu fileMenu = new JMenu("File");
+        menuBar.add(fileMenu);
+
+        // Create the "Open Folder" menu item
+        JMenuItem openFolderMenuItem = new JMenuItem("Open Folder");
+        openFolderMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openFolder();
             }
         });
+        fileMenu.add(openFolderMenuItem);
+        frame.setJMenuBar(menuBar);
+    }
+
+    private void setupProjectNamesComboBox() {
+        projectNames = new JComboBox<>(config.getProjectList().toArray(new String[0]));
+        final JTextField editor = (JTextField) projectNames.getEditor().getEditorComponent();
+        editor.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+                    Object selectedItem = projectNames.getSelectedItem();
+                    projectNames.removeItem(selectedItem);
+                }
+            }
+        });
+        projectNames.setEditable(true);
     }
 
     // Method to recursively add files to a node
@@ -346,27 +351,5 @@ public class PDFRenamer {
             }
         }
     }
-
-    private void testRxJava(){
-        projectNamesObservable.subscribe(item -> {
-            System.out.println("Selected item: " + item);
-        });
-    }
-
-    // Assuming `config` is your Config instance and `configUtil` is a utility for
-    // saving/loading the Config
-    // Assuming `projectNames` is your JComboBox instance
-
-    // Create an Observable that emits the selected item whenever it changes
-    Observable<String> projectNamesObservable = Observable.create(emitter -> {
-        projectNames.addActionListener(e -> {
-            if (!emitter.isDisposed()) {
-                emitter.onNext((String) projectNames.getSelectedItem());
-            }
-        });
-    });
-
-    // Subscribe to the Observable and update the Config file whenever the selected
-    // item changes
 
 }
