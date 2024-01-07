@@ -9,6 +9,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.logging.Logger;
 
 import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.rendering.*;
@@ -17,6 +18,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 
 public class PDFRenamer {
+    Logger logger = Logger.getLogger(PDFRenamer.class.getName());
     private static final String DOLLAR_SIGN = "$";
 
     private static final String SEPARATOR = "_";
@@ -66,9 +68,21 @@ public class PDFRenamer {
         // Create the input fields
         documentTypeCombo = new JComboBox<>(config.getDocumentTypeList().toArray(new String[0]));
         projectNames = new JComboBox<>(config.getProjectList().toArray(new String[0]));
+        final JTextField editor = (JTextField) projectNames.getEditor().getEditorComponent();
+        editor.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+                    Object selectedItem = projectNames.getSelectedItem();
+                    projectNames.removeItem(selectedItem);
+                }
+            }
+        });
+        projectNames.setEditable(true);
 
         dateSpinner = new JSpinner(new SpinnerDateModel());
         supplierField = new JComboBox<>(config.getSupplierList().toArray(new String[0]));
+        supplierField.setEditable(true);
         amountField = new JFormattedTextField(Double.valueOf(0.00));
         amountField.setColumns(8);
         descriptionTextField = new JTextField(20);
@@ -100,13 +114,65 @@ public class PDFRenamer {
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 renameFile();
-                refreshComboBoxes();
             }
         });
 
         refreshButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                refreshComboBoxes();
+            }
+        });
+
+        supplierField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                logger.info("supplierField action performed" + e.getActionCommand());
+                String newItem = (String) supplierField.getEditor().getItem();
+                if (!comboBoxContains(supplierField, newItem)) {
+                    supplierField.addItem(newItem);
+                    updateSupplierListConfig(newItem);
+                }
+            }
+
+            private boolean comboBoxContains(JComboBox<String> comboBox, String item) {
+                for (int i = 0; i < comboBox.getItemCount(); i++) {
+                    if (item.equals(comboBox.getItemAt(i))) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+
+        // write the code to listen to the action of the projectNames combo box
+        projectNames.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                logger.info("projectNames action performed = " + e.getActionCommand());
+                String newItem = (String) projectNames.getSelectedItem();
+                if (!comboBoxContains(projectNames, newItem)) {
+                    projectNames.addItem(newItem);
+                    updateProjectListConfig(newItem);
+                }
+            }
+
+            private boolean comboBoxContains(JComboBox<String> comboBox, String item) {
+                for (int i = 0; i < comboBox.getItemCount(); i++) {
+                    if (item.equals(comboBox.getItemAt(i))) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+
+        // Assuming `comboBox` is your JComboBox instance
+        projectNames.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+                    Object selectedItem = projectNames.getSelectedItem();
+                    projectNames.removeItem(selectedItem);
+                }
             }
         });
 
@@ -202,22 +268,38 @@ public class PDFRenamer {
         fileTree.setSelectionRow(2);
     }
 
-    private void refreshComboBoxes() {
-        documentTypeCombo.setModel(new DefaultComboBoxModel<String>(
-                config.getDocumentTypeList().toArray(new String[0])));
-        projectNames.setModel(new DefaultComboBoxModel<String>(
-                config.getProjectList().toArray(new String[0])));
-        supplierField.setModel(new DefaultComboBoxModel<String>(
-                config.getSupplierList().toArray(new String[0])));
-    }
-
     private void openFolder() {
         JFileChooser folderChooser = new JFileChooser();
         folderChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         int returnValue = folderChooser.showOpenDialog(null);
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             File selectedFolder = folderChooser.getSelectedFile();
-            System.out.println(selectedFolder.getAbsolutePath());
+            config.setSourceFolder(selectedFolder.getAbsolutePath());
+            logger.info(selectedFolder.getAbsolutePath());
+            ConfigUtil.saveConfig(config);
+            refreshTree();
+
+        }
+    }
+
+    private void updateSupplierListConfig(String newItem) {
+        if (!config.getSupplierList().contains(newItem)) {
+            config.getSupplierList().add(newItem);
+            java.util.List<String> newList = config.getSupplierList();
+            config.setSupplierList(newList);
+            ConfigUtil.saveConfig(config);
+            logger.info("supplier list updated");
+        }
+    }
+
+    // write the code to update the config file with the new project list
+    private void updateProjectListConfig(String newItem) {
+        if (!config.getProjectList().contains(newItem)) {
+            config.getProjectList().add(newItem);
+            java.util.List<String> newList = config.getProjectList();
+            config.setProjectList(newList);
+            ConfigUtil.saveConfig(config);
+            logger.info("project list updated");
         }
     }
 

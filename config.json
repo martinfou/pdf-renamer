@@ -1,15 +1,20 @@
 {
     "projectList": [
-        "roulotte",
+        "EEEE",
+        "Martin",
         "compica",
         "des ecluses",
+        "dodge-caravan",
         "edouard",
-        "personel",
-        "saint-laurent",
         "f-150",
-        "dodge-caravan"
+        "martin",
+        "personel",
+        "roulotte",
+        "saint-laurent",
+        "zzzzz"
     ],
     "supplierList": [
+        "bite-me",
         "desroches cpa",
         "taxes scolaires",
         "costco-optometriste",
@@ -33,7 +38,8 @@
         "scotia",
         "telus",
         "veterinaire",
-        "videotron"
+        "videotron",
+        "zzzzzzzzzz"
     ],
     "documentTypeList": [
         "facture",
