@@ -1,1 +1,6 @@
-{"projectList":["EEEE","Martin","Martin2","compica","des ecluses","dodge-caravan","edouard","f-150","martin","personel","roulotte","saint-laurent","zzzzz"],"supplierList":["bite-me","desroches cpa","taxes scolaires","costco-optometriste","tigre-geant","winners","fonds ftq","dollorama","canac","wallmart","bell","bois-expansion-inc","clinique-pedagogique","dentiste","fido","gagnon","home-depot","hydro-Quebec","revenu-quebec","rogers","rona","scotia","telus","veterinaire","videotron","zzzzzzzzzz"],"documentTypeList":["facture","document"],"sourceFolder":"C:\\Users\\marti\\Dropbox\\Factures\\Facture 2023"}
+{
+  "projectList" : [ "compica", "des ecluses", "dodge-caravan", "edouard", "f-150", "martin", "personel", "roulotte", "saint-laurent" ],
+  "supplierList" : [ "bell", "bois-expansion-inc", "canac", "clinique-pedagogique", "costco-optometriste", "dentiste", "desroches cpa", "dollorama", "fido", "fonds ftq", "gagnon", "hello", "home-depot", "hydro-Quebec", "revenu-quebec", "rogers", "rona", "scotia", "taxes scolaires", "telus", "tigre-geant", "veterinaire", "videotron", "wallmart", "winners" ],
+  "documentTypeList" : [ "document", "facture", "business-card" ],
+  "sourceFolder" : "C:\\Users\\marti\\Dropbox\\Factures\\Facture 2023"
+}

@@ -8,6 +8,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.logging.Logger;
 
@@ -16,7 +18,6 @@ import org.apache.pdfbox.rendering.*;
 
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import io.reactivex.rxjava3.core.Observable;
 
 public class PDFRenamer {
     Logger logger = Logger.getLogger(PDFRenamer.class.getName());
@@ -36,14 +37,23 @@ public class PDFRenamer {
     private JTree fileTree;
 
     private JComboBox<String> documentTypeCombo;
-    private JComboBox<String> projectNames;
+    private JComboBox<String> projectComboBox;
     private JSpinner dateSpinner;
-    private JComboBox<String> supplierField;
-    private JFormattedTextField amountField;
+    private JComboBox<String> supplierComboBox;
+    private JFormattedTextField amountTextField;
     private JTextField descriptionTextField;
 
     public PDFRenamer() {
         createGui();
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                PDFRenamer renamer = new PDFRenamer();
+                renamer.frame.setVisible(true);
+            }
+        });
     }
 
     private void previewPDF(File file) {
@@ -67,27 +77,18 @@ public class PDFRenamer {
         }
     }
 
-    public static void main(String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                PDFRenamer renamer = new PDFRenamer();
-                renamer.frame.setVisible(true);
-            }
-        });
-    }
-
     protected void createGui() {
         logger.info("createGui");
         frame = new JFrame("PDF Previewer and Renamer");
-        setupMenuBar();
 
+        setupMenuBar();
         setupDocumentTypeComboBox();
         setupProjectNamesComboBox();
         setupSupplierComboBox();
         setupAmountInputField();
         setupDescriptionInputLabel();
 
-
+        dateSpinner = new JSpinner(new SpinnerDateModel());
         imageLabel = new JLabel();
 
         // Configure the date spinner
@@ -99,20 +100,17 @@ public class PDFRenamer {
         panel.add(new JLabel("Type Document:"));
         panel.add(documentTypeCombo);
         panel.add(new JLabel("Projet:"));
-        panel.add(projectNames);
+        panel.add(projectComboBox);
         panel.add(new JLabel("Date:"));
         panel.add(dateSpinner);
         panel.add(new JLabel("Supplier:"));
-        panel.add(supplierField);
+        panel.add(supplierComboBox);
         panel.add(new JLabel("Amount:"));
-        panel.add(amountField);
+        panel.add(amountTextField);
         panel.add(new JLabel("Description:"));
         panel.add(descriptionTextField);
 
-
         button = new JButton("Rename");
-
-
 
         button.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -120,56 +118,46 @@ public class PDFRenamer {
             }
         });
 
-        supplierField.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                logger.info("supplierField action performed" + e.getActionCommand());
-                String newItem = (String) supplierField.getEditor().getItem();
-                if (!comboBoxContains(supplierField, newItem)) {
-                    supplierField.addItem(newItem);
-                    updateSupplierListConfig(newItem);
-                }
-            }
-
-            private boolean comboBoxContains(JComboBox<String> comboBox, String item) {
-                for (int i = 0; i < comboBox.getItemCount(); i++) {
-                    if (item.equals(comboBox.getItemAt(i))) {
-                        return true;
-                    }
-                }
-                return false;
+        supplierComboBox.addActionListener(e -> {
+            logger.info(new LogMessage("supplierComboBox action performed", e.getActionCommand()).toString());
+            String newItem = (String) supplierComboBox.getEditor().getItem();
+            if (!comboBoxContains(supplierComboBox, newItem)) {
+                supplierComboBox.addItem(newItem);
+                updateSupplierListConfig(newItem);
             }
         });
 
-        // write the code to listen to the action of the projectNames combo box
-        projectNames.addActionListener(new ActionListener() {
+        documentTypeCombo.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                logger.info("projectNames action performed = " + e.getActionCommand());
-                String newItem = (String) projectNames.getSelectedItem();
-                if (!comboBoxContains(projectNames, newItem)) {
-                    projectNames.addItem(newItem);
+                logger.info(new LogMessage("documentTypeCombo action performed", e.getActionCommand()).toString());
+                String newItem = (String) documentTypeCombo.getSelectedItem();
+                if (!comboBoxContains(documentTypeCombo, newItem)) {
+                    documentTypeCombo.addItem(newItem);
+                    updateDocumentTypeListConfig(newItem);
+                }
+            }
+        });
+
+        projectComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+                logger.info(new LogMessage("projectComboBox action performed", e.getActionCommand()).toString());
+                String newItem = (String) projectComboBox.getSelectedItem();
+                if (!comboBoxContains(projectComboBox, newItem)) {
+                    projectComboBox.addItem(newItem);
                     updateProjectListConfig(newItem);
                 }
             }
-
-            private boolean comboBoxContains(JComboBox<String> comboBox, String item) {
-                for (int i = 0; i < comboBox.getItemCount(); i++) {
-                    if (item.equals(comboBox.getItemAt(i))) {
-                        return true;
-                    }
-                }
-                return false;
-            }
         });
 
-        // Assuming `comboBox` is your JComboBox instance
-        projectNames.addKeyListener(new KeyAdapter() {
+        projectComboBox.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_DELETE) {
-                    Object selectedItem = projectNames.getSelectedItem();
-                    projectNames.removeItem(selectedItem);
+                    Object selectedItem = projectComboBox.getSelectedItem();
+                    projectComboBox.removeItem(selectedItem);
                 }
             }
         });
@@ -215,18 +203,8 @@ public class PDFRenamer {
     }
 
     private void setupAmountInputField() {
-        amountField = new JFormattedTextField(Double.valueOf(0.00));
-        amountField.setColumns(8);
-    }
-
-    private void setupSupplierComboBox() {
-        dateSpinner = new JSpinner(new SpinnerDateModel());
-        supplierField = new JComboBox<>(config.getSupplierList().toArray(new String[0]));
-        supplierField.setEditable(true);
-    }
-
-    private void setupDocumentTypeComboBox() {
-        documentTypeCombo = new JComboBox<>(config.getDocumentTypeList().toArray(new String[0]));
+        amountTextField = new JFormattedTextField(Double.valueOf(0.00));
+        amountTextField.setColumns(8);
     }
 
     private void setupMenuBar() {
@@ -247,19 +225,55 @@ public class PDFRenamer {
         frame.setJMenuBar(menuBar);
     }
 
-    private void setupProjectNamesComboBox() {
-        projectNames = new JComboBox<>(config.getProjectList().toArray(new String[0]));
-        final JTextField editor = (JTextField) projectNames.getEditor().getEditorComponent();
+    private void setupSupplierComboBox() {
+        Collections.sort(config.getSupplierList(), String.CASE_INSENSITIVE_ORDER);
+        supplierComboBox = new JComboBox<>(config.getSupplierList().toArray(new String[0]));
+        supplierComboBox.setEditable(true);
+        final JTextField editor = (JTextField) supplierComboBox.getEditor().getEditorComponent();
         editor.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_DELETE) {
-                    Object selectedItem = projectNames.getSelectedItem();
-                    projectNames.removeItem(selectedItem);
+                    Object selectedItem = supplierComboBox.getSelectedItem();
+                    supplierComboBox.removeItem(selectedItem);
+                    updateSupplierListConfig((String) selectedItem);
                 }
             }
         });
-        projectNames.setEditable(true);
+    }
+
+    private void setupProjectNamesComboBox() {
+        Collections.sort(config.getProjectList(), String.CASE_INSENSITIVE_ORDER);
+        projectComboBox = new JComboBox<>(config.getProjectList().toArray(new String[0]));
+        final JTextField editor = (JTextField) projectComboBox.getEditor().getEditorComponent();
+        editor.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+                    Object selectedItem = projectComboBox.getSelectedItem();
+                    projectComboBox.removeItem(selectedItem);
+                    updateProjectListConfig((String) selectedItem);
+                }
+            }
+        });
+        projectComboBox.setEditable(true);
+    }
+
+    private void setupDocumentTypeComboBox() {
+        Collections.sort(config.getDocumentTypeList(), String.CASE_INSENSITIVE_ORDER);
+        documentTypeCombo = new JComboBox<>(config.getDocumentTypeList().toArray(new String[0]));
+        documentTypeCombo.setEditable(true);
+        final JTextField editor = (JTextField) documentTypeCombo.getEditor().getEditorComponent();
+        editor.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_DELETE) {
+                    Object selectedItem = documentTypeCombo.getSelectedItem();
+                    documentTypeCombo.removeItem(selectedItem);
+                    updateDocumentTypeListConfig((String) selectedItem);
+                }
+            }
+        });
     }
 
     // Method to recursively add files to a node
@@ -302,33 +316,65 @@ public class PDFRenamer {
     }
 
     private void updateSupplierListConfig(String newItem) {
-        if (!config.getSupplierList().contains(newItem)) {
+        var isInTheListAlready = config.getSupplierList().contains(newItem);
+
+        if (!isInTheListAlready) {
+            logger.info(new LogMessage("supplier list does not contain item", newItem).toString());
             config.getSupplierList().add(newItem);
             java.util.List<String> newList = config.getSupplierList();
+            newList.sort(String::compareToIgnoreCase);
             config.setSupplierList(newList);
-            ConfigUtil.saveConfig(config);
-            logger.info("supplier list updated");
+            logger.info(new LogMessage("supplier list updated with value", newItem).toString());
+        } else {
+            logger.info(new LogMessage("supplier list contains item", newItem).toString());
+            var itemIdex = config.getSupplierList().indexOf(newItem);
+            config.getSupplierList().remove(itemIdex);
         }
+
+        ConfigUtil.saveConfig(config);
     }
 
-    // write the code to update the config file with the new project list
-    private void updateProjectListConfig(String newItem) {
-        if (!config.getProjectList().contains(newItem)) {
-            config.getProjectList().add(newItem);
+    private void updateProjectListConfig(String item) {
+        var isInTheListAlready = config.getProjectList().contains(item);
+
+        if (!isInTheListAlready) {
+            config.getProjectList().add(item);
             java.util.List<String> newList = config.getProjectList();
             config.setProjectList(newList);
-            ConfigUtil.saveConfig(config);
             logger.info("project list updated");
+        } else {
+            logger.info("project list contains item");
+            var itemIdex = config.getProjectList().indexOf(item);
+            config.getProjectList().remove(itemIdex);
         }
+
+        ConfigUtil.saveConfig(config);
+    }
+
+    private void updateDocumentTypeListConfig(String item) {
+        var isInTheListAlready = config.getDocumentTypeList().contains(item);
+
+        if (!isInTheListAlready) {
+            config.getDocumentTypeList().add(item);
+            java.util.List<String> newList = config.getDocumentTypeList();
+            config.setDocumentTypeList(newList);
+            logger.info("document type list updated");
+        } else {
+            logger.info("document type list contains item");
+            var itemIdex = config.getDocumentTypeList().indexOf(item);
+            config.getDocumentTypeList().remove(itemIdex);
+        }
+
+        ConfigUtil.saveConfig(config);
     }
 
     private void renameFile() {
         if (file != null) {
             String documentType = (String) documentTypeCombo.getSelectedItem();
-            String projectName = (String) projectNames.getSelectedItem();
+            String projectName = (String) projectComboBox.getSelectedItem();
             String date = new SimpleDateFormat("yyyy-MM-dd").format((Date) dateSpinner.getValue());
-            String supplier = (String) supplierField.getSelectedItem();
-            String amount = amountField.getText();
+            String supplier = (String) supplierComboBox.getSelectedItem();
+            String amount = amountTextField.getText();
             String description = descriptionTextField.getText();
             String newName = "";
 
@@ -350,6 +396,16 @@ public class PDFRenamer {
                 refreshTree();
             }
         }
+    }
+
+    // Moved the helper method outside the ActionListener for better readability
+    private boolean comboBoxContains(JComboBox<String> comboBox, String item) {
+        for (int i = 0; i < comboBox.getItemCount(); i++) {
+            if (item.equals(comboBox.getItemAt(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

@@ -34,24 +34,25 @@ public class ConfigUtil {
     }
 
     public static void saveConfig(Config config) {
+        Logger logger = Logger.getLogger(ConfigUtil.class.getName());
+
         // Create a Jackson ObjectMapper
         ObjectMapper mapper = new ObjectMapper();
 
         // Convert the config object to JSON string
         String json;
         try {
-            json = mapper.writeValueAsString(config);
+            //writerWithDefaultPrettyPrinter() is used to format the JSON output
+            json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(config);
         } catch (JsonProcessingException e) {
-            e.printStackTrace();
+            logger.info(new LogMessage("Error converting config to JSON", e.getMessage()).toString());
             return;
         }
-
-        // Write the JSON string to the config file
+//make sure that the json file is pretty. I would like each key to be on a new line
         try (FileWriter writer = new FileWriter("config.json")) {
             writer.write(json);
         } catch (IOException e) {
-            e.printStackTrace();
-        }
+            logger.info(new LogMessage("Error writing config file", e.getMessage()).toString());        }
     }
 
 }
